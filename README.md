@@ -3,12 +3,11 @@
 Library for creating or prototyping Discord bots quickly and efficiently.
 Built on top of [JDA](https://github.com/DV8FromTheWorld/JDA) and [jda-ktx](https://github.com/MinnDevelopment/jda-ktx).
 
-To get the most out of this library, also read the [jda-ktx readme](https://github.com/MinnDevelopment/jda-ktx#readme) and
-[docs](https://minndevelopment.github.io/jda-ktx/).
+To get the most out of this library, also read the [jda-ktx readme](https://github.com/MinnDevelopment/jda-ktx#readme).
 
 ## Download
 
-### Gradle 
+### Gradle
 
 ```kotlin
 repositories {
@@ -19,24 +18,6 @@ repositories {
 dependencies {
     implementation("com.github.PattexPattex:Dikko:${COMMIT}")
 }
-```
-
-### Maven
-
-```xml
-<repository>
-    <id>jitpack</id>
-    <name>jitpack</name>
-    <url>https://jitpack.io/</url>
-</repository>
-```
-
-```xml
-<dependency>
-  <groupId>com.github.PattexPattex</groupId>
-  <artifactId>Dikko</artifactId>
-  <version>$COMMIT</version>
-</dependency>
 ```
 
 ## Examples
