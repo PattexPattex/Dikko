@@ -3,8 +3,8 @@ package com.pattexpattex.dikko.internal.event.dispatcher
 import com.pattexpattex.dikko.api.Dikko
 import com.pattexpattex.dikko.api.event.EventWrapper
 import com.pattexpattex.dikko.api.event.dispatcher.EventDispatcherManager
-import com.pattexpattex.dikko.internal.EventPropertyExtractor
 import com.pattexpattex.dikko.internal.DikkoImpl
+import com.pattexpattex.dikko.internal.EventPropertyExtractor
 import com.pattexpattex.dikko.internal.ctx.GuildContextFactory
 import com.pattexpattex.dikko.internal.ctx.GuildContextImpl
 import com.pattexpattex.dikko.internal.definition.DefinitionArgumentsSupplier
@@ -55,7 +55,7 @@ internal class EventDispatcherManagerImpl(override val dikko: Dikko) : EventDisp
         val visitor = DefinitionVisitorFactory.create(clazz, callable)
         val dispatcher = getEventDispatcher(visitor.eventType)
 
-        val args = DefinitionArgumentsSupplier.supply(clazz, callable, dikko)
+        val args = DefinitionArgumentsSupplier.supply(clazz, callable, (dikko as DikkoImpl).dispatcherManager.getGuildContext(null))
         val proxy = visitor.call(args)
 
         if (proxy.isFailure) {

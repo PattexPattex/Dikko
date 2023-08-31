@@ -2,6 +2,7 @@ package com.pattexpattex.dikko.internal.event.handler.instances
 
 import com.pattexpattex.dikko.api.Dikko
 import com.pattexpattex.dikko.api.DikkoCallable
+import com.pattexpattex.dikko.api.ctx.GuildContext
 import com.pattexpattex.dikko.api.event.handler.EventHandlerInstanceFactory
 import com.pattexpattex.dikko.internal.exception.ExceptionTools.wrap
 import com.pattexpattex.dikko.internal.exception.ReflectCallException
@@ -12,14 +13,14 @@ import kotlin.reflect.jvm.isAccessible
 import kotlin.reflect.typeOf
 
 internal class EventHandlerInstanceFactoryImpl(private val clazz: KClass<*>) : EventHandlerInstanceFactory, DikkoCallable<Any> {
-    override fun createInstance(dikko: Dikko): Any {
+    override fun createInstance(ctx: GuildContext): Any {
         val objInstance = clazz.objectInstance
         if (objInstance != null) {
             return objInstance
         }
 
         val constructor = getConstructor()
-        val args = createArgs(constructor, dikko)
+        val args = createArgs(constructor, ctx)
         return callBlocking(args).getOrThrow()
     }
 
@@ -31,11 +32,11 @@ internal class EventHandlerInstanceFactoryImpl(private val clazz: KClass<*>) : E
         } ?: throw NullPointerException("No applicable constructors").wrap(clazz)
     }
 
-    private fun createArgs(constructor: KFunction<*>, dikko: Dikko): Map<KParameter, Any?> {
+    private fun createArgs(constructor: KFunction<*>, ctx: GuildContext): Map<KParameter, Any?> {
         return if (constructor.parameters.isEmpty()) {
             emptyMap()
         } else {
-            mapOf(constructor.parameters[0] to dikko)
+            mapOf(constructor.parameters[0] to ctx)
         }
     }
 

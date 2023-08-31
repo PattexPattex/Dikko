@@ -14,7 +14,7 @@ internal abstract class GuildContextImpl(override val dikko: Dikko) : GuildConte
         return eventHandlerInstances.getOrPut(clazz) {
             EventHandlerInstanceFactoryFactory
                 .createFactory(clazz)
-                .createInstance(dikko)
+                .createInstance(this)
         }
     }
 
