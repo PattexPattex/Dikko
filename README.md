@@ -298,16 +298,16 @@ object SlashCommands { // An object instead of a class
     /* ... */
 }
 
-class SlashCommands(val dikko: Dikko) { // Constructor accepts instance of Dikko
+class SlashCommands(val ctx: GuildContext) { // Constructor accepts instance of Dikko
     /* ... */
 }
 
 @UseFactory(Factory::class) // With a custom factory
-class SlashCommands(val dikko: Dikko, val string: String) {
+class SlashCommands(val ctx: GuildContext, val string: String) {
     /* ... */
     
     class Factory : EventHandlerInstanceFactory { // Custom factory, must have a no arguments constructor
-        override fun createInstance(dikko: Dikko): Any = SlashCommands(dikko, "😲")
+        override fun createInstance(ctx: GuildContext): Any = SlashCommands(ctx, "😲")
     }
 }
 ```
