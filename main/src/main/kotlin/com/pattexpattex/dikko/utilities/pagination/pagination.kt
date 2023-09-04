@@ -22,12 +22,18 @@ import kotlin.time.Duration
 class Pagination internal constructor(
     val id: String,
     val timeout: Duration,
-    val pages: List<MessageEditData>,
+    pages: List<MessageEditData>,
     page: Int,
     private val editFun: (MessageEditData) -> RestAction<Message>,
     private val jda: JDA,
     private val filter: (ButtonInteractionEvent) -> Boolean
 ) {
+    var pages = pages
+        set(value) {
+            field = value
+            selectPage(page)
+        }
+
     var page = page
         private set
 
@@ -84,6 +90,10 @@ class Pagination internal constructor(
             editFun(buildDisabledPage()).queue()
             _channel.close()
         }
+    }
+
+    fun updatePages(builder: MutableList<MessageEditData>.() -> Unit) {
+        pages = pages.toMutableList().apply(builder)
     }
 
     /**
