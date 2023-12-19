@@ -36,6 +36,15 @@ class SlashEventDispatcher internal constructor(dikko: Dikko) : EventDispatcherI
     override suspend fun finalizeSetup(jda: JDA) {
         jda.updateCommands()
             .addCommands(definitionProxies.map { it.value })
+            .also {
+                (dikko as DikkoImpl).dispatcherManager.dispatchers.messageMenu?.proxies?.values?.map { it.value }?.let { list ->
+                    it.addCommands(list)
+                }
+
+                dikko.dispatcherManager.dispatchers.userMenu?.proxies?.values?.map { it.value }?.let { list ->
+                    it.addCommands(list)
+                }
+            }
             .queue()
         addCommandsToGroups()
     }

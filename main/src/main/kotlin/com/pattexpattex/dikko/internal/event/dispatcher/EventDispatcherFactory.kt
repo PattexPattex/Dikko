@@ -34,7 +34,8 @@ internal object EventDispatcherFactory {
             ModalEventWrapper::class -> ModalEventDispatcher(dikko)
             StringSelectEventWrapper::class -> SelectEventDispatcher<StringSelectMenu>(dikko)
             EntitySelectEventWrapper::class -> SelectEventDispatcher<EntitySelectMenu>(dikko)
-            MessageContextMenuEventWrapper::class, UserContextMenuEventWrapper::class -> ContextMenuEventDispatcher(dikko)
+            MessageContextMenuEventWrapper::class -> ContextMenuEventDispatcher.Message(dikko)
+            UserContextMenuEventWrapper::class -> ContextMenuEventDispatcher.User(dikko)
             AutocompleteEventWrapper::class -> AutocompleteEventDispatcher(dikko)
             else -> throw IllegalArgumentException("Unsupported event type '${eventType.qualifiedName}'")
         }

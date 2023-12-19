@@ -39,8 +39,8 @@ interface EventDispatcherManager {
         val modal get() = get<ModalEventDispatcher>()
         val entitySelect get() = get<SelectEventDispatcher<EntitySelectMenu>>()
         val stringSelect get() = get<SelectEventDispatcher<StringSelectMenu>>()
-        val messageMenu get() = get<ContextMenuEventDispatcher>()
-        val userMenu get() = get<ContextMenuEventDispatcher>()
+        val messageMenu get() = get<ContextMenuEventDispatcher.Message>()
+        val userMenu get() = get<ContextMenuEventDispatcher.User>()
     }
 
     class CTX internal constructor(private val eventDispatcherManager: EventDispatcherManagerImpl) {
