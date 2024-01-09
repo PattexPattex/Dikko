@@ -5,8 +5,11 @@ import com.pattexpattex.dikko.api.annotations.Ignore
 import com.pattexpattex.dikko.internal.exception.ExceptionTools.wrap
 import dev.minn.jda.ktx.util.SLF4J
 import io.github.classgraph.ClassGraph
+import kotlin.reflect.KAnnotatedElement
 import kotlin.reflect.KCallable
 import kotlin.reflect.KClass
+import kotlin.reflect.full.createInstance
+import kotlin.reflect.full.findAnnotation
 import kotlin.reflect.full.hasAnnotation
 import kotlin.reflect.full.isSubtypeOf
 import kotlin.reflect.typeOf
@@ -15,28 +18,17 @@ internal object ClientCallableExtractor {
     fun findDefinitionCallables(
         packages: List<String>,
         classes: List<String>
-    ): List<Pair<KClass<*>, KCallable<Any>>> = ClassGraph()
-        .enableAllInfo()
+    ): List<Pair<KClass<*>, KCallable<Any>>> = ClassGraph().enableAllInfo()
         .acceptPackages(*packages.toTypedArray())
         .acceptClasses(*classes.toTypedArray())
         .scan()
-        .use { result ->
-            result.getClassesWithMethodAnnotation(Definition::class.java)
-                .filterNot { it.hasAnnotation(Ignore::class.java) }
-                .flatMap { classInfo ->
-                    classInfo.loadClass().kotlin.let { kClass ->
-                        kClass.members
-                            .filter { it.hasAnnotation<Definition>() }
-                            .filterNot { it.hasAnnotation<Ignore>() }
-                            .filter { it.returnType.isSubtypeOf(typeOf<Any>()) }
-                            .mapNotNull {
-                                val cast = tryCastToAny(
-                                    kClass,
-                                    it
-                                ) ?: return@mapNotNull null
-                                kClass to cast
-                            }
-                    }
+        .use { result -> result.getClassesWithMethodAnnotation(Definition::class.java)
+            .map { it.loadClass().kotlin }
+            .filterNotIgnored()
+            .flatMap { kClass -> kClass.members
+                .filter { it.hasAnnotation<Definition>() && it.returnType.isSubtypeOf(typeOf<Any>()) }
+                .filterNotIgnored()
+                .mapNotNull { tryCastToAny(kClass, it)?.let { kClass to it } }
             }
         }
 
@@ -48,16 +40,13 @@ internal object ClientCallableExtractor {
         .acceptPackages(*packages.toTypedArray())
         .acceptClasses(*classes.toTypedArray())
         .scan()
-        .use { result ->
-            result.getClassesWithMethodAnnotation(T::class.java)
-                .filterNot { it.hasAnnotation(Ignore::class.java) }
-                .flatMap { classInfo ->
-                    classInfo.loadClass().kotlin.let { kClass ->
-                        kClass.members
-                            .filter { it.hasAnnotation<T>() }
-                            .filterNot { it.hasAnnotation<Ignore>() }
-                            .map { kClass to it }
-                    }
+        .use { result -> result.getClassesWithMethodAnnotation(T::class.java)
+            .map { it.loadClass().kotlin }
+            .filterNotIgnored()
+            .flatMap { kClass -> kClass.members
+                .filter { it.hasAnnotation<T>() }
+                .filterNotIgnored()
+                .map { kClass to it }
             }
         }
 
@@ -73,6 +62,17 @@ internal object ClientCallableExtractor {
                 ClassCastException().wrap(clazz, callable)
             )
             null
+        }
+    }
+
+    private fun <T : KAnnotatedElement> List<T>.filterNotIgnored() = filter { element ->
+        val ann = element.findAnnotation<Ignore>() ?: return@filter true
+
+        try {
+             !ann.predicate.let { it.objectInstance ?: it.createInstance() }.get()
+        } catch (e: IllegalArgumentException) {
+            log.error("Cannot create instance of @Ignore predicate, ignoring annotated element", e.wrap(element as? KClass<*>, element as? KCallable<*>))
+            false
         }
     }
 }

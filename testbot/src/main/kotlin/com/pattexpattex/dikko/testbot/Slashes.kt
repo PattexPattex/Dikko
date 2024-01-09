@@ -2,6 +2,7 @@ package com.pattexpattex.dikko.testbot
 
 import com.pattexpattex.dikko.api.annotations.Definition
 import com.pattexpattex.dikko.api.annotations.EventHandler
+import com.pattexpattex.dikko.api.annotations.Ignore
 import com.pattexpattex.dikko.internal.implementation.slash.SlashEventWrapper
 import com.pattexpattex.dikko.internal.implementation.slash.slash
 import com.pattexpattex.dikko.utilities.pagination.pagination
@@ -14,10 +15,19 @@ import dev.minn.jda.ktx.messages.send
 import kotlinx.coroutines.coroutineScope
 import net.dv8tion.jda.api.Permission
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle
+import java.util.function.Supplier
 
+@Ignore(Slashes.Companion::class)
 class Slashes {
     @Definition("foo") val foo = slash("foo", "foo far bar baz")
     @Definition("far") val far = slash("far", "foo far bar baz")
+
+    companion object : Supplier<Boolean> {
+        override fun get(): Boolean {
+            println("got called")
+            return true
+        }
+    }
 
     @EventHandler("foo")
     suspend fun foo(event: SlashEventWrapper) = coroutineScope {
@@ -39,6 +49,7 @@ class Slashes {
         println(result.timeCreated)
     }
 
+    @Ignore
     @EventHandler("far")
     suspend fun far(event: SlashEventWrapper) = coroutineScope {
         val prompt = prompt("yes?") {
