@@ -9,7 +9,7 @@ plugins {
 
 dependencies {
     api("net.dv8tion:JDA:5.0.0-beta.18")
-    api("com.github.minndevelopment:jda-ktx:9370cb1")
+    api("com.github.minndevelopment:jda-ktx:e8b0a70")
     api("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
     compileOnly("com.google.code.findbugs:jsr305:3.0.2")
 
@@ -17,7 +17,7 @@ dependencies {
     implementation(kotlin("reflect"))
 
     testImplementation(kotlin("test"))
-    testRuntimeOnly("ch.qos.logback:logback-classic:1.3.8")
+    testRuntimeOnly("ch.qos.logback:logback-classic:1.4.12")
 }
 
 tasks {
