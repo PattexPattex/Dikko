@@ -8,8 +8,8 @@ plugins {
 }
 
 dependencies {
-    api("net.dv8tion:JDA:5.0.0-beta.18")
-    api("com.github.minndevelopment:jda-ktx:e8b0a70")
+    api("net.dv8tion:JDA:5.0.0-beta.20")
+    api("com.github.minndevelopment:jda-ktx:78dbf82")
     api("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
     compileOnly("com.google.code.findbugs:jsr305:3.0.2")
 
