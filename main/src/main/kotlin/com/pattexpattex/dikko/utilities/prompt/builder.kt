@@ -20,15 +20,17 @@ fun prompt(
     text: String,
     timeout: Duration = 5.minutes,
     options: List<PromptOption> = emptyList(),
+    messageSupplier: PromptMessageSupplier = DefaultPromptMessageSupplier(),
     filter: (ButtonInteractionEvent) -> Boolean = { true },
     builder: PromptBuilder.() -> Unit = {}
-) = PromptBuilder(text, timeout, options, filter).apply(builder)
+) = PromptBuilder(text, timeout, options, messageSupplier, filter).apply(builder)
 
 @PromptDSL
 class PromptBuilder internal constructor(
     var text: String,
     var timeout: Duration,
     options: List<PromptOption>,
+    var messageSupplier: PromptMessageSupplier,
     var filter: (ButtonInteractionEvent) -> Boolean
 ) {
     val options = OptionsAccumulator(options)
@@ -62,7 +64,8 @@ class PromptBuilder internal constructor(
             editFun,
             author.jda,
             author.idLong,
-            filter
+            filter,
+            messageSupplier
         ).apply { start() }
     }
 }

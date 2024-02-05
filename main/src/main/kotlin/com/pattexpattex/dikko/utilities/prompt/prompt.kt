@@ -3,10 +3,6 @@ package com.pattexpattex.dikko.utilities.prompt
 import com.pattexpattex.dikko.utilities.listeners.await
 import com.pattexpattex.dikko.utilities.timeout.Timeout
 import dev.minn.jda.ktx.events.getDefaultScope
-import dev.minn.jda.ktx.interactions.components.button
-import dev.minn.jda.ktx.interactions.components.row
-import dev.minn.jda.ktx.messages.MessageEdit
-import dev.minn.jda.ktx.messages.reply_
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.ReceiveChannel
@@ -27,7 +23,8 @@ class Prompt internal constructor(
     private val editFun: (MessageEditData) -> RestAction<Message>,
     private val jda: JDA,
     private val authorId: Long,
-    private val filter: (ButtonInteractionEvent) -> Boolean
+    private val filter: (ButtonInteractionEvent) -> Boolean,
+    private val messageSupplier: PromptMessageSupplier
 ) {
     private val _scope = getDefaultScope()
     private val _timeout = Timeout("Prompt $id", timeout, _scope, ::timeout)
@@ -66,7 +63,7 @@ class Prompt internal constructor(
                     break
                 }
 
-                editFun(createActiveMessage()).queue()
+                editFun(messageSupplier.activeMessage(id, options, text, _timeout)).queue()
 
                 val (event, path) = jda.await<ButtonInteractionEvent>("dikko.prompt:$id.{id}")
 
@@ -97,7 +94,7 @@ class Prompt internal constructor(
         onResult(PromptResult(option, null, PromptResult.Type.RESPONSE))
 
         if (!isCompleted) {
-            editFun(createActiveMessage()).queue()
+            editFun(messageSupplier.activeMessage(id, options, text, _timeout)).queue()
         }
     }
 
@@ -124,10 +121,16 @@ class Prompt internal constructor(
             PromptResult.Type.RESPONSE -> {
                 if (result.event != null) {
                     if (result.event.user.idLong in inputs) {
-                        return result.event.reply_("❗ You already responded to this prompt.", ephemeral = true).queue()
+                        return result.event
+                            .reply(messageSupplier.alreadyRespondedMessage(options, text, _timeout))
+                            .setEphemeral(true)
+                            .queue()
                     }
                     if (!filter(result.event)) {
-                        return result.event.reply_("❌ You cannot respond to this prompt.", ephemeral = true).queue()
+                        return result.event
+                            .reply(messageSupplier.cannotInteractMessage(options, text, _timeout))
+                            .setEphemeral(true)
+                            .queue()
                     }
                 }
 
@@ -135,7 +138,10 @@ class Prompt internal constructor(
             }
             PromptResult.Type.CANCEL -> {
                 if (result.event?.user?.idLong != authorId) {
-                    result.event?.reply_("❌ You cannot cancel this prompt.", ephemeral = true)?.queue()
+                    result.event
+                        ?.reply(messageSupplier.cannotCancelMessage(options, text, _timeout))
+                        ?.setEphemeral(true)
+                        ?.queue()
                 } else {
                     complete(result)
                 }
@@ -169,48 +175,12 @@ class Prompt internal constructor(
         }
 
         if (result.event != null) {
-            result.event.editMessage(createCompletedMessage(result)).setReplace(true).queue()
+            result.event.editMessage(messageSupplier.completedMessage(result, text)).setReplace(true).queue()
         } else {
-            editFun(createCompletedMessage(result)).queue()
+            editFun(messageSupplier.completedMessage(result, text)).queue()
         }
 
         _channel.close()
-    }
-
-    private fun createActiveMessage() = MessageEdit {
-        embed {
-            title = text
-            footer("Expires")
-            timestamp = _timeout.endTime
-            color = 0x36393F
-
-            description = options.filter { it.id != "cancel" }.joinToString("\n") {
-                buildString {
-                    append("${it.emoji.formatted} ${it.text}")
-
-                    if (it.requiredSelects > 1) {
-                        append(" (`${it.selects}` out of `${it.requiredSelects}` required)")
-                    }
-                }
-            }
-        }
-
-        components += options.map {
-            button("dikko.prompt:$id.${it.id}", style = it.style, emoji = it.emoji)
-        }.row()
-    }
-
-    private fun createCompletedMessage(result: PromptResult) = MessageEdit {
-        embed {
-            color = 0x36393F
-            val prefix = when (result.type) {
-                PromptResult.Type.RESPONSE -> result.option.emoji.formatted
-                PromptResult.Type.CANCEL -> "Cancelled"
-                PromptResult.Type.TIMEOUT -> "Timed out"
-            }
-
-            description = "$prefix **|** $text"
-        }
     }
 }
 
