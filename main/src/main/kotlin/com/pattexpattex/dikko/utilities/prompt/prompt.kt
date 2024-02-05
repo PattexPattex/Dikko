@@ -175,9 +175,10 @@ class Prompt internal constructor(
         }
 
         if (result.event != null) {
-            result.event.editMessage(messageSupplier.completedMessage(result, text)).setReplace(true).queue()
+            messageSupplier.completedMessage(result, text)
+                ?.let { result.event.editMessage(it).setReplace(true).queue() }
         } else {
-            editFun(messageSupplier.completedMessage(result, text)).queue()
+            messageSupplier.completedMessage(result, text)?.let { editFun(it).queue() }
         }
 
         _channel.close()

@@ -10,7 +10,7 @@ import net.dv8tion.jda.api.utils.messages.MessageEditData
 
 interface PromptMessageSupplier {
     fun activeMessage(id: String, options: List<PromptOption>, text: String, timeout: Timeout): MessageEditData
-    fun completedMessage(result: PromptResult, text: String): MessageEditData
+    fun completedMessage(result: PromptResult, text: String): MessageEditData?
     fun alreadyRespondedMessage(options: List<PromptOption>, text: String, timeout: Timeout): MessageCreateData
     fun cannotInteractMessage(options: List<PromptOption>, text: String, timeout: Timeout): MessageCreateData
     fun cannotCancelMessage(options: List<PromptOption>, text: String, timeout: Timeout): MessageCreateData
